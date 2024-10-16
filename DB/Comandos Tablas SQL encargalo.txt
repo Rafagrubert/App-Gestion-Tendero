@@ -1,0 +1,285 @@
+create table tblRoles(
+idRoles int auto_increment primary key,
+Roles varchar(30),
+estado bit(1)
+);
+
+
+create table tblUsuarios_roles(
+idUsuariosRoles int auto_increment primary key,
+usunombre_user varchar(100),
+usucorreo varchar(150),
+usuImagen varchar(255),
+usucalificacionApp float,
+usuContraseña varchar(100),
+usuProveedor Varchar(100),
+usuEstado bit,
+idRoles int,
+foreign key (idRoles) references tblRoles(idRoles)
+);
+
+create table Doc_user(
+idDoc int auto_increment primary key,
+archivo varchar(200),
+archivo2 varchar(200),
+archivo3 varchar(200),
+archivo4 varchar(200),
+archivo5 varchar(200),
+idUsuariosroles int,
+foreign key (idUsuariosRoles) references tblUsuarios_roles(idUsuariosRoles)
+);
+
+
+create table tblPersona(
+idPersona int auto_increment primary key,
+perNombre varchar(150),
+perApellidos varchar(150),
+perTipo varchar(50),
+perNumeroCelular varchar(20),
+perUbiLatitud varchar(255),
+peroUbiLongitud varchar(255),
+idUsuariosRoles int,
+foreign key (idUsuariosRoles) references tblUsuarios_roles(idUsuariosRoles)
+);
+
+
+
+create table tblRepartidor(
+idRepartidor int auto_increment primary key,
+repEstado varchar(50),
+repAntecedentes varchar(100),
+repLicencia varchar(100),
+repLicenciaEstado varchar(100),
+repNombreVehiculo varchar(100),
+repDocumentoVehiculo varchar(100),
+repTarjetaPropiedad varchar(100),
+repPlaca varchar(20),
+idPersona int,
+foreign key (idPersona) references tblPersona(idPersona)
+);
+
+
+create table tblTienda(
+idTienda int auto_increment primary key,
+TieNombre varchar(255),
+TieImagen varchar(255),
+TieURLWeb varchar(255),
+TieDescripcion Text,
+Tiecorreo varchar(100),
+TieTelefono varchar(20),
+TieDireccion varchar(100),
+TieCiudad varchar(100),
+TieEstado varchar(30),
+TieVentasMensuales int,
+TieInventarioEstimado decimal(10,2),
+TieLatitud varchar(255),
+TieLongitud varchar(255),
+idPersona int,
+foreign key (idPersona) references tblPersona(idPersona)
+);
+
+
+create table tblHistorialRepartidor(
+idHistorialRepartidor int auto_increment primary key,
+hisrepFechaInicio DATE,
+hisrepFechafin DATE,
+idTienda int,
+idRepartidor int,
+foreign key (idTienda) references tblTienda(idTienda),
+foreign key (idRepartidor) references tblRepartidor(idRepartidor)
+);
+
+
+create table tblEventoVivo(
+idEventosV int auto_increment primary key,
+evFechaPublicacion DATETIME,
+evEstado varchar(20),
+evTitulo varchar(200),
+evDescripcion TEXT,
+evLink varchar(255)
+);
+
+create table tblPersonaEventoV(
+idPersonaEventoB int auto_increment primary key,
+perevFechaAsistencia DATETIME,
+idEventosV int,
+idPersona int,
+foreign key (idEventosV) references tblEventoVivo(idEventosV),
+foreign key (idPersona) references tblPersona(idPersona)
+);
+
+
+create table tblAprendizaje(
+idAprendizaje int auto_increment primary key,
+apreEstado varchar(50),
+apreFechaPublicación datetime,
+apreCategoriaRecursos varchar(200),
+apreTituloRecursos varchar(100),
+apreContenido varchar(255)
+);
+
+create table tblPersonaAprendizaje(
+idPersonaApre int auto_increment primary key,
+perapEstado varchar(50),
+perapFechaInscripcion datetime,
+idAprendizaje INT,
+idPersona INT,
+foreign key (idPersona) references tblPersona(idPersona),
+foreign key (idAprendizaje) references tblAprendizaje(idAprendizaje)
+);
+
+
+create table tblMetodopago(
+IdmetodoPago int primary key auto_increment,
+nombre varchar(50),
+descripcion TEXT
+);
+
+
+/**/
+
+create table tblOrden(
+idOrden int auto_increment primary key,
+odFechaPedido date,
+odhoraPedido time,
+odEstado varchar(50),
+odlatitudEntrega varchar(255),
+odlongitudEntrega varchar(255),
+odlatitudEntregaTR varchar(255),
+odlongitudEntregaTR varchar(255),
+odFechaEntrega date,
+odhoraEntrega time,
+odGananciasTienda decimal(10,2),
+odGananciaRepartidor decimal(10,2),
+idRepartidor int,
+idTienda int,
+idPersona int,
+idMetodoPago int,
+foreign key (idRepartidor) references tblRepartidor(idRepartidor),
+foreign key (idTienda) references tblTienda(idTienda),
+foreign key (idPersona) references tblPersona(idPersona),
+foreign key (idMetodoPago) references tblMetodopago(idMetodoPago)
+);
+
+create table tblHistorialEstadoOrden(
+idEstadoOrden int auto_increment primary key,
+esorEstado varchar(50),
+esorHora TIME,
+idOrden int,
+foreign key (idOrden) references tblOrden(idOrden)
+);
+
+
+create table tblchat(
+idChat int auto_increment primary key,
+chFecha DATETIME,
+idUsuariosRoles INT,
+idOrden INT,
+foreign key (idUsuariosRoles) references tblUsuarios_roles(idUsuariosRoles),
+foreign key (idOrden) references tblOrden(idOrden)
+);
+
+
+create table tblMensaje(
+idMensaje int auto_increment primary key,
+menContenido varchar(255),
+menEstado varchar(25),
+menImagen varchar(150),
+menFechaEnvio datetime,
+idUsuariosRoles int,
+idChat int,
+foreign key (idUsuariosRoles) references tblUsuarios_roles(idUsuariosRoles),
+foreign key (idChat) references tblchat(idChat)
+);
+
+
+create table tblCategoriaProducto(
+idCategoriaProducto int auto_increment primary key,
+cpNombre varchar(50)
+);
+
+create table tblProveedor(
+idProveedor INT auto_increment primary key,
+provNombre varchar(100),
+provDireccion varchar(100),
+provCiudad varchar(100),
+provDistrito varchar(100),
+provCorreo varchar(100),
+provTelefono varchar(20),
+provRFC varchar(20)
+);
+
+
+create table tblProductos(
+idProducto INT auto_increment primary key,
+proImagen1 varchar(150),
+proImagen2 varchar(150),
+proImagen3 varchar(150),
+proDescripcion text,
+proPrecioCostoPromedio decimal(10,2),
+proPrecioVentaRecomendado decimal(10,2),
+proUnidadMedida varchar(50),
+idCategoriaProducto int,
+idProveedor int,
+foreign key (idCategoriaProducto) references tblCategoriaProducto(idCategoriaProducto),
+foreign key (idProveedor) references tblProveedor(idProveedor)
+);
+
+create table tblPublicidad(
+idPublicidad int primary key auto_increment,
+pubTitulo VARCHAR(200),
+pubDescripcion VARCHAR(255),
+pubFechaInicio DATE,
+pubFechaFin DATE,
+pubEstado VARCHAR(20),
+pubLinkRedirec VARCHAR(255),
+pubCantVistas INT,
+pubCantClicks INT,
+pubImagen VARCHAR(255)
+);
+
+create table tblFacturaPublicidad(
+idFactura INT primary key auto_increment,
+factpubMontoTotal DECIMAL(10,2),
+factpubFechaPago DATE,
+idTienda INT,
+idPublicidad INT,
+foreign key (idTienda) references tblTienda(idTienda),
+foreign key (idPublicidad) references tblPublicidad(idPublicidad)
+);
+
+create table tblHorarioAtencion(
+idHorarioAntencion INT primary key auto_increment,
+horateHoraAbre TIME,
+horateHoraCierra TIME,
+idTienda INT,
+foreign key (idTienda) references tblTienda(idTienda)
+);
+
+create table tblRubroTienda(
+idRubroTienda INT primary key auto_increment,
+rtDescripcion VARCHAR(100)
+);
+
+create table tblDetalleRubroTienda(
+idDetalleRubroTienda INT primary key auto_increment,
+idRubroTienda INT,
+idTienda INT,
+drtFechaRegistro datetime,
+foreign key (idTienda) references tblTienda(idTienda),
+foreign key (idRubroTienda) references tblRubroTienda(idRubroTienda)
+);
+
+create table tblListadoProductoTienda(
+idListadoProductoTienda INT primary key auto_increment,
+iptDescripcionProductoTienda VARCHAR(255),
+iptStock FLOAT,
+lptStockMinimo FLOAT,
+lptPrecioCompra DECIMAL(10,2),
+lptPrecioVenta DECIMAL(10,2),
+lpEstado VARCHAR(20),
+idProducto INT,
+idTienda INT,
+foreign key (idTienda) references tblTienda(idTienda),
+foreign key (idProducto) references tblProductos(idProducto)
+);
