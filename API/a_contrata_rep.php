@@ -1,6 +1,6 @@
 <?php
 include 'conexion.php';
-$c_idten=$_GET['idten'];
+$c_idten=$_GET['idten']
 $c_idrep=$_GET['idrep'];
 
 $consulta="CALL sp_a_contrata_rep(".$c_idten.",".$c_idrep.")";
