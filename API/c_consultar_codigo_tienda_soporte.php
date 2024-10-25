@@ -1,28 +1,57 @@
 <?php
 include 'conexion.php';
+$conexion->set_charset('utf8');
 
-$json=array();
-
-    if(isset($_GET["idpersona"])){
-        $idpersona=$_GET['idpersona'];
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (isset($_GET["idpersona"])) {
+        $idpersona = $_GET["idpersona"];
         
-        $consulta="CALL sp_c_consultar_codigo_tienda_soporte('".$idpersona."')";
-        $resultado=mysqli_query($conexion,$consulta);
-
-        if($registro=mysqli_fetch_array($resultado)){
-            $json['CodTienda'][]=$registro;
-        }
-        else{
-            $resultar["idTienda"]='no registra';
-            $json['CodTienda'][]=$resultar;
+        if ($stmt = $conexion->prepare("CALL sp_c_consultar_codigo_tienda_soporte(?)")) {
+            $stmt->bind_param('s', $idpersona);
+            
+            if ($stmt->execute()) {
+                $resultado = $stmt->get_result();
+                $json = array('CodTienda' => array());
+                
+                if ($registro = $resultado->fetch_assoc()) {
+                    $json['CodTienda'][] = $registro;
+                } else {
+                    $json['CodTienda'][] = array(
+                        'idTienda' => 'no registra'
+                    );
+                }
+                
+                $resultado->close();
+                echo json_encode($json);
+            } else {
+                $json = array('CodTienda' => array(array(
+                    'success' => 0,
+                    'message' => 'Error en la ejecución de la consulta: ' . $stmt->error
+                )));
+                echo json_encode($json);
             }
-        mysqli_close($conexion);
-        echo json_encode($json);
-    }
-    else{
-            $resultar["success"]=0;
-            $resultar["message"]='WS no retorna';
-            $json['CodTienda'][]=$resultar;
+            $stmt->close();
+        } else {
+            $json = array('CodTienda' => array(array(
+                'success' => 0,
+                'message' => 'Error al preparar la consulta: ' . $conexion->error
+            )));
             echo json_encode($json);
         }
+    } else {
+        $json = array('CodTienda' => array(array(
+            'success' => 0,
+            'message' => 'WS no retorna'
+        )));
+        echo json_encode($json);
+    }
+} else {
+    $json = array('CodTienda' => array(array(
+        'success' => 0,
+        'message' => 'Método no permitido. Se requiere una solicitud GET.'
+    )));
+    echo json_encode($json);
+}
+
+$conexion->close();
 ?>
