@@ -12,7 +12,7 @@ $json=array();
 
     $consulta="call sp_c_lista_ordenes_mis_ordenes( {$sp_idTienda} , {$sp_idOrden} , '{$sp_odEstado}', '{$sp_odFechaPedido}');";
 
-
+    //hola
     $resultado=mysqli_query($conexion,$consulta);
 
     while($registro=mysqli_fetch_array($resultado)){
