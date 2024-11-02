@@ -1,66 +1,78 @@
 <?php
 include 'conexion.php';
 
-$json=array();
-    if($_SERVER['REQUEST_METHOD']=='POST'){
-        
-        $p_lptDescripcionProductoTienda=$_POST['p_lptDescripcionProductoTienda'];
-        $p_lptStock=$_POST['p_lptStock'];
-        $p_lptUnidadMedida=$_POST['p_lptUnidadMedida'];
-        $p_lptStockMinimo=$_POST['p_lptStockMinimo'];
-        $p_lptImagen1=$_POST['p_lptImagen1'];
-        $p_lptImagen2=$_POST['p_lptImagen2'];
-        $p_lptImagen3=$_POST['p_lptImagen3'];
-        $p_lptPrecioCompra=$_POST['p_lptPrecioCompra'];
-        $p_lptPrecioVenta=$_POST['p_lptPrecioVenta'];
-        $p_idTienda=$_POST['p_idTienda'];
+$json = array();
 
-        //Verificación de existencia de ruta imagen
-        if(empty($p_lptImagen1)){
-            $imagePath1 = "";
-        }else{
-            //Generación de codigo único
-            $filePath1 = uniqid($p_idTienda);
-            //Construimos la ruta de la imagen
-            $imagePath1 = "imgProductosTienda/".$filePath1.".jpeg";
-            //Insertando imagen en el directorio del servidor
-            file_put_contents($imagePath1, base64_decode($p_lptImagen1));
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Verificar que se reciban todos los parámetros
+    if (
+        isset($_POST['p_lptDescripcionProductoTienda']) &&
+        isset($_POST['p_lptStock']) &&
+        isset($_POST['p_lptUnidadMedida']) &&
+        isset($_POST['p_lptStockMinimo']) &&
+        isset($_POST['p_lptPrecioCompra']) &&
+        isset($_POST['p_lptPrecioVenta']) &&
+        isset($_POST['p_idTienda']) &&
+        isset($_POST['p_lptImagen1']) &&
+        isset($_POST['p_lptImagen2']) &&
+        isset($_POST['p_lptImagen3'])
+    ) {
+        $p_lptDescripcionProductoTienda = $_POST['p_lptDescripcionProductoTienda'];
+        $p_lptStock = $_POST['p_lptStock'];
+        $p_lptUnidadMedida = $_POST['p_lptUnidadMedida'];
+        $p_lptStockMinimo = $_POST['p_lptStockMinimo'];
+        $p_lptImagen1 = $_POST['p_lptImagen1'];
+        $p_lptImagen2 = $_POST['p_lptImagen2'];
+        $p_lptImagen3 = $_POST['p_lptImagen3'];
+        $p_lptPrecioCompra = $_POST['p_lptPrecioCompra'];
+        $p_lptPrecioVenta = $_POST['p_lptPrecioVenta'];
+        $p_idTienda = $_POST['p_idTienda'];
+
+        // Función para guardar imagen
+        function saveImage($imageData, $idTienda) {
+            if (empty($imageData)) {
+                return "";
+            } else {
+                $filePath = uniqid($idTienda);
+                $imagePath = "imgProductosTienda/" . $filePath . ".jpeg";
+                file_put_contents($imagePath, base64_decode($imageData));
+                return $imagePath;
+            }
         }
 
-        //Verificación de existencia de ruta imagen
-        if(empty($p_lptImagen2)){
-            $imagePath2 = "";
-        }else{
-            //Generación de codigo único
-            $filePath2 = uniqid($p_idTienda);
-            //Construimos la ruta de la imagen
-            $imagePath2 = "imgProductosTienda/".$filePath2.".jpeg";
-            //Insertando imagen en el directorio del servidor
-            file_put_contents($imagePath2, base64_decode($p_lptImagen2));
-        }
+        // Guardar imágenes
+        $imagePath1 = saveImage($p_lptImagen1, $p_idTienda);
+        $imagePath2 = saveImage($p_lptImagen2, $p_idTienda);
+        $imagePath3 = saveImage($p_lptImagen3, $p_idTienda);
 
-        //Verificación de existencia de ruta imagen
-        if(empty($p_lptImagen3)){
-            $imagePath3 = "";
-        }else{
-            //Generación de codigo único
-            $filePath3 = uniqid($p_idTienda);
-            //Construimos la ruta de la imagen
-            $imagePath3 = "imgProductosTienda/".$filePath3.".jpeg";
-            //Insertando imagen en el directorio del servidor
-            file_put_contents($imagePath3, base64_decode($p_lptImagen3));
-        }
+        // Usar prepared statement para la inserción
+        if ($stmt = $conexion->prepare("CALL sp_a_producto_propio_registroproducto(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            $stmt->bind_param('siissssdds', $p_lptDescripcionProductoTienda, $p_lptStock, $p_lptUnidadMedida, $p_lptStockMinimo, $imagePath1, $imagePath2, $imagePath3, $p_lptPrecioCompra, $p_lptPrecioVenta, $p_idTienda);
 
+            // Ejecutar la consulta
+            if ($stmt->execute()) {
+                $json['success'] = true;
+                $json['message'] = 'Registro exitoso de Producto';
+            } else {
+                $json['success'] = false;
+                $json['message'] = 'Fallo en Registrar Producto: ' . $stmt->error;
+            }
 
-        $insert="CALL sp_a_producto_propio_registroproducto('{$p_lptDescripcionProductoTienda}','{$p_lptStock}','{$p_lptUnidadMedida}','{$p_lptStockMinimo}','{$imagePath1}','{$imagePath2}','{$imagePath3}','{$p_lptPrecioCompra}','{$p_lptPrecioVenta}','{$p_idTienda}')";
-        $resultado=mysqli_query($conexion,$insert);
-        if($resultado){
-            echo 'Registro exitoso de Producto';
+            // Cerrar el statement
+            $stmt->close();
+        } else {
+            $json['success'] = false;
+            $json['message'] = 'Error al preparar la consulta: ' . $conexion->error;
         }
-        else{
-            echo 'Fallo en Registrar Producto';
-        }
-        mysqli_close($conexion);
-        echo json_encode($json);
+    } else {
+        $json['success'] = false;
+        $json['message'] = 'Faltan parámetros requeridos.';
     }
+
+    // Cerrar la conexión
+    mysqli_close($conexion);
+
+    // Devolver la respuesta en formato JSON
+    echo json_encode($json);
+}
 ?>

@@ -1,31 +1,46 @@
 <?php
-
 include 'conexion.php';
-$c_id_orden=$_GET['id_Orden'];
+$conexion->set_charset('utf8');
 
-$json = array();
-        
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (isset($_GET['id_Orden'])) {
+        $c_id_orden = $_GET['id_Orden'];
 
-        $consulta="CALL sp_c_consultar_mensajes_chat_x_orden({$c_id_orden})"; 
-        $resultado = mysqli_query($conexion,$consulta);
+        if ($stmt = $conexion->prepare("CALL sp_c_consultar_mensajes_chat_x_orden(?)")) {
+            $stmt->bind_param('i', $c_id_orden);
 
-        while($registro = mysqli_fetch_array($resultado)){
-        $result["idChat"]=$registro['idChat'];
-        $result["idUsuario"]=$registro['idUsuario'];
-        $result["ruNombre"]=$registro['ruNombre'];
-        $result["perNombres"]=$registro['perNombres'];        
-        $result["usuImagen"]=$registro['usuImagen'];
-        $result["menFechaEnvio"]=$registro['menFechaEnvio'];
-        $result["menContenido"]=$registro['menContenido'];
-        $result["menImagen"]=$registro['menImagen'];
-        
-        $json['consulta'][]=$result;   
-        
-    
+            if ($stmt->execute()) {
+                $resultado = $stmt->get_result();
+                $json = array();
+
+                while ($registro = $resultado->fetch_assoc()) {
+                    $result = array(
+                        "idChat" => $registro['idChat'],
+                        "idUsuario" => $registro['idUsuario'],
+                        "ruNombre" => $registro['ruNombre'],
+                        "perNombres" => $registro['perNombres'],
+                        "usuImagen" => $registro['usuImagen'],
+                        "menFechaEnvio" => $registro['menFechaEnvio'],
+                        "menContenido" => $registro['menContenido'],
+                        "menImagen" => $registro['menImagen']
+                    );
+                    $json['consulta'][] = $result;
+                }
+
+                echo json_encode($json);
+            } else {
+                echo json_encode(['error' => 'Error en la ejecución de la consulta: ' . $stmt->error]);
+            }
+            $stmt->close();
+        } else {
+            echo json_encode(['error' => 'Error al preparar la consulta: ' . $conexion->error]);
         }
+    } else {
+        echo json_encode(['error' => 'No se proporcionaron todos los parámetros requeridos.']);
+    }
+} else {
+    echo json_encode(['error' => 'Método no permitido. Se requiere una solicitud GET.']);
+}
 
-        mysqli_close($conexion);
-        echo json_encode($json);
-        
-
+$conexion->close();
 ?>
